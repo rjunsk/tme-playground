@@ -1,0 +1,52 @@
+version: 2.1
+
+setup: true
+
+parameters:
+  test-environment:
+    description: Test Environment
+    type: enum
+    enum: [ "prod", "stage" ]
+    default: "prod"
+  trigger-audio-mixer-e2e-tests:
+    description: Audio Mixer E2E Test Trigger
+    type: boolean
+    default: false
+  trigger-video-composer-e2e-tests:
+    description: Video Composer E2E Test Trigger
+    type: boolean
+    default: false
+
+orbs:
+  path-filtering: circleci/path-filtering@0.0.3
+  continuation: circleci/continuation@0.2.0
+
+workflows:
+  evaluate-pipeline:
+    jobs:
+      - path-filtering/filter:
+          name: Check Updated Files
+          mapping: |
+            video-composer/.* video-composer-updated true
+            audio-mixer/.* audio-mixer-updated true
+          base-revision: main
+          config-path: .circleci/continue_config.yml
+          filters:
+            tags:
+              ignore: /.*/
+      - continuation/continue:
+          name: Continue from Tag
+          configuration_path: .circleci/continue_config.yml
+          filters:
+            tags:
+              only: /.*/
+            branches:
+              ignore: /.*/
+      - continuation/continue:
+          name: Continue from API
+          configuration_path: ./.circleci/continue_config.yml
+          filters:
+            tags:
+              ignore: /.*/
+            branches:
+              ignore: /.*/

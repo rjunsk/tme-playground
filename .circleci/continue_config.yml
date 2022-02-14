@@ -1,0 +1,359 @@
+version: 2.1
+
+orbs:
+  node: circleci/node@4.7
+
+parameters:
+  video-composer-updated:
+    type: boolean
+    default: false
+  audio-mixer-updated:
+    type: boolean
+    default: false
+  test-environment:
+    description: Test Environment
+    type: enum
+    enum: ['prod', 'stage']
+    default: 'prod'
+  trigger-audio-mixer-e2e-tests:
+    description: Audio Mixer E2E Test Trigger
+    type: boolean
+    default: false
+  trigger-video-composer-e2e-tests:
+    description: Video Composer E2E Test Trigger
+    type: boolean
+    default: false
+
+aliases:
+  - &deploy-preview-filters
+    branches:
+      only:
+        - main
+
+  - &audio-mixer-deploy-beta-filters
+    tags:
+      only:
+        - /^audio-mixer-\d+\.\d+\.\d+-rc.\d+$/
+        - /^audio-mixer-\d+\.\d+\.\d+-preview\.\d+-rc.\d+$/
+        - /^audio-mixer-\d+\.\d+\.\d+-beta\.\d+-rc.\d+$/
+    branches:
+      ignore: /.*/
+
+  - &video-composer-deploy-beta-filters
+    tags:
+      only:
+        - /^video-composer-\d+\.\d+\.\d+-rc.\d+$/
+        - /^video-composer-\d+\.\d+\.\d+-preview\.\d+-rc.\d+$/
+        - /^video-composer-\d+\.\d+\.\d+-beta\.\d+-rc.\d+$/
+    branches:
+      ignore: /.*/
+
+commands:
+  shared-setup:
+    steps:
+      - checkout
+      - run:
+          name: Set Environment Variables
+          command: |
+            echo "Setting environment variables"
+            echo ACCOUNT_SID=$TWILIO_ACCOUNT_SID >> .env
+            echo AUTH_TOKEN=$TWILIO_AUTH_TOKEN >> .env
+            echo TEST_ACCOUNT_SID=$TEST_ACCOUNT_SID >> .env
+            echo TEST_API_KEY_SID=$TEST_API_KEY_SID >> .env
+            echo TEST_API_KEY_SECRET=$TEST_API_KEY_SECRET >> .env
+            echo TEST_ACCOUNT_SID_STAGE=$TEST_ACCOUNT_SID_STAGE >> .env
+            echo TEST_API_KEY_SID_STAGE=$TEST_API_KEY_SID_STAGE >> .env
+            echo TEST_API_KEY_SECRET_STAGE=$TEST_API_KEY_SECRET_STAGE >> .env
+            echo TWILIO_ENVIRONMENT=<< pipeline.parameters.test-environment >> >> .env
+      - run:
+          name: Set git publisher
+          command: |
+            git config --global user.email $CI_GIT_USER_EMAIL
+            git config --global user.name $CI_GIT_USER_NAME
+      - node/install-packages:
+          pkg-manager: yarn
+
+jobs:
+  test-video-composer:
+    docker:
+      - image: circleci/node:16-browsers
+    steps:
+      - shared-setup
+      - run:
+          name: Run Tests
+          command: yarn test:video
+      - store_artifacts:
+          path: video-composer/coverage
+      - run:
+          name: Run Eslint
+          command: yarn lint:video
+      - run:
+          name: Build app and check types
+          command: yarn build:video
+      - run:
+          name: Run integration tests
+          command: yarn cypress:integration:video
+      - store_artifacts:
+          path: cypress/screenshots
+      - store_artifacts:
+          path: cypress/videos
+
+  deploy-video-composer-preview:
+    docker:
+      - image: circleci/node:16-browsers
+    steps:
+      - shared-setup
+      - run:
+          name: Create version.txt
+          command: |
+            VERSION=$(node -pe "require('video-composer/package.json').version")
+            COMMIT=$(echo $CIRCLE_SHA1 | cut -c -7)
+            echo $VERSION-$COMMIT > video-composer/public/version.txt
+      - run:
+          name: Build
+          command: yarn build:video
+      - run:
+          name: Deploy Preview
+          command: yarn deploy:video:preview
+
+  test-audio-mixer:
+    docker:
+      - image: circleci/node:16-browsers
+    steps:
+      - shared-setup
+      - run:
+          name: Run Tests
+          command: yarn test:audio
+      - store_artifacts:
+          path: audio-mixer/coverage
+      - run:
+          name: Run Eslint
+          command: yarn lint:audio
+      - run:
+          name: Build app and check types
+          command: yarn build:audio
+      - run:
+          name: Run integration tests
+          command: yarn cypress:integration:audio
+
+  e2e-test-audio-mixer:
+    docker:
+      - image: circleci/node:16-browsers
+    steps:
+      - shared-setup
+      - run:
+          name: Run Tests
+          command: yarn test:audio
+      - run:
+          name: Run Eslint
+          command: yarn lint:audio
+      - run:
+          name: Build app and check types
+          command: yarn build:audio
+      - run:
+          name: Run e2e tests
+          command: CYPRESS_MEDIA_EXTENSION=audio-mixer-v1 yarn run cypress:e2e:audio
+
+  e2e-test-video-composer:
+    docker:
+      - image: circleci/node:16-browsers
+    steps:
+      - shared-setup
+      - run:
+          name: Run Tests
+          command: yarn test:video
+      - run:
+          name: Run Eslint
+          command: yarn lint:video
+      - run:
+          name: Build app and check types
+          command: yarn build:video
+      - run:
+          name: Run e2e tests
+          command: CYPRESS_MEDIA_EXTENSION=video-composer-v1 yarn run cypress:e2e:video
+
+  deploy-audio-mixer-preview:
+    docker:
+      - image: circleci/node:16-browsers
+    steps:
+      - shared-setup
+      - run:
+          name: Create version.txt
+          command: |
+            VERSION=$(node -pe "require('audio-mixer/package.json').version")
+            COMMIT=$(echo $CIRCLE_SHA1 | cut -c -7)
+            echo $VERSION-$COMMIT > audio-mixer/public/version.txt
+      - run:
+          name: Build
+          command: yarn build:audio
+      - run:
+          name: Deploy Preview
+          command: yarn deploy:audio:preview
+
+  deploy-audio-mixer-beta:
+    docker:
+      - image: circleci/node:16-browsers
+    steps:
+      - shared-setup
+      - run:
+          name: Create version.txt
+          command: scripts/validate-and-create-rc-version.sh audio-mixer
+      - run:
+          name: Build
+          command: yarn build:audio
+      - run:
+          name: Deploy Beta
+          command: yarn deploy:audio:beta
+      - run:
+          name: Increment RC Version
+          command: scripts/increment-rc-version.sh audio-mixer
+
+  deploy-video-composer-beta:
+    docker:
+      - image: circleci/node:16-browsers
+    steps:
+      - shared-setup
+      - run:
+          name: Create version.txt
+          command: scripts/validate-and-create-rc-version.sh video-composer
+      - run:
+          name: Build
+          command: yarn build:video
+      - run:
+          name: Deploy Beta
+          command: yarn deploy:video:beta
+      - run:
+          name: Increment RC Version
+          command: scripts/increment-rc-version.sh video-composer
+
+  deploy-audio-mixer:
+    docker:
+      - image: circleci/node:16-browsers
+    steps:
+      - shared-setup
+      - run:
+          name: Create version.txt
+          command: scripts/validate-and-create-version.sh audio-mixer
+      - run:
+          name: Build
+          command: yarn build:audio
+      - run:
+          name: Deploy Stable
+          command: yarn deploy:audio:stable
+      - run:
+          name: Update Versions
+          command: scripts/increment-version.sh audio-mixer
+
+  deploy-video-composer:
+    docker:
+      - image: circleci/node:16-browsers
+    steps:
+      - shared-setup
+      - run:
+          name: Create version.txt
+          command: scripts/validate-and-create-version.sh video-composer
+      - run:
+          name: Build
+          command: yarn build:video
+      - run:
+          name: Deploy Stable
+          command: yarn deploy:video:stable
+      - run:
+          name: Update Versions
+          command: scripts/increment-version.sh video-composer
+
+workflows:
+  audio-mixer-e2e-tests:
+    when: << pipeline.parameters.trigger-audio-mixer-e2e-tests >>
+    jobs:
+      - e2e-test-audio-mixer
+  video-composer-e2e-tests:
+    when: << pipeline.parameters.trigger-video-composer-e2e-tests >>
+    jobs:
+      - e2e-test-video-composer
+  test-video-composer:
+    when: << pipeline.parameters.video-composer-updated >>
+    jobs:
+      - test-video-composer:
+          filters:
+            branches:
+              ignore:
+                - main
+  test-audio-mixer:
+    when: << pipeline.parameters.audio-mixer-updated >>
+    jobs:
+      - test-audio-mixer:
+          filters:
+            branches:
+              ignore:
+                - main
+
+  deploy-video-composer-preview:
+    when:
+      and:
+        - << pipeline.parameters.video-composer-updated >>
+        - not: << pipeline.parameters.trigger-audio-mixer-e2e-tests >>
+        - not: << pipeline.parameters.trigger-video-composer-e2e-tests >>
+    jobs:
+      - test-video-composer:
+          filters: *deploy-preview-filters
+      - deploy-video-composer-preview:
+          requires:
+            - test-video-composer
+          filters: *deploy-preview-filters
+
+  deploy-audio-mixer-preview:
+    when:
+      and:
+        - << pipeline.parameters.audio-mixer-updated >>
+        - not: << pipeline.parameters.trigger-audio-mixer-e2e-tests >>
+        - not: << pipeline.parameters.trigger-video-composer-e2e-tests >>
+    jobs:
+      - test-audio-mixer:
+          filters: *deploy-preview-filters
+      - deploy-audio-mixer-preview:
+          requires:
+            - test-audio-mixer
+          filters: *deploy-preview-filters
+
+  deploy-audio-mixer-beta:
+    jobs:
+      - test-audio-mixer:
+          filters: *audio-mixer-deploy-beta-filters
+      - deploy-audio-mixer-beta:
+          requires:
+            - test-audio-mixer
+          filters: *audio-mixer-deploy-beta-filters
+
+  deploy-video-composer-beta:
+    jobs:
+      - test-video-composer:
+          filters: *video-composer-deploy-beta-filters
+      - deploy-video-composer-beta:
+          requires:
+            - test-video-composer
+          filters: *video-composer-deploy-beta-filters
+
+  deploy-audio-mixer:
+    jobs:
+      - deploy-audio-mixer:
+          filters:
+            tags:
+              only:
+                - /^audio-mixer-\d+\.\d+\.\d+$/
+                - /^audio-mixer-\d+\.\d+\.\d+-preview\.\d+$/
+                - /^audio-mixer-\d+\.\d+\.\d+-beta\.\d+$/
+            branches:
+              ignore: /.*/
+
+  deploy-video-composer:
+    jobs:
+      - deploy-video-composer:
+          filters:
+            tags:
+              only:
+                - /^video-composer-\d+\.\d+\.\d+$/
+                - /^video-composer-\d+\.\d+\.\d+-preview\.\d+$/
+                - /^video-composer-\d+\.\d+\.\d+-beta\.\d+$/
+            branches:
+              ignore: /.*/

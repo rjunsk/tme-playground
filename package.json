@@ -1,0 +1,58 @@
+{
+  "name": "media-extensions-ci-playground",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test:audio": "yarn workspace audio-mixer run test:ci",
+    "test:video": "yarn workspace video-composer run test:ci",
+    "test": "yarn run test:audio && yarn run test:video",
+    "lint:audio": "yarn workspace audio-mixer run lint",
+    "lint:video": "yarn workspace video-composer run lint",
+    "typescript:audio": "yarn workspace audio-mixer run typescript",
+    "typescript:video": "yarn workspace video-composer run typescript",
+    "build:audio": "yarn workspace audio-mixer run build",
+    "build:video": "yarn workspace video-composer run build",
+    "postbuild:audio": "node scripts/prepare-build.js audio-mixer/build",
+    "postbuild:video": "node scripts/prepare-build.js video-composer/build",
+    "deploy:audio": "twilio-run deploy --service-name audio-mixer-v1 --override-existing-project --cwd audio-mixer --assets-folder build --no-functions --env ../.env",
+    "deploy:video": "twilio-run deploy --service-name video-composer-v1 --override-existing-project --cwd video-composer --assets-folder build --no-functions --env ../.env",
+    "deploy:audio:preview": "yarn run deploy:audio --environment preview",
+    "deploy:audio:beta": "yarn run deploy:audio --environment beta",
+    "deploy:audio:stable": "yarn run deploy:audio --production",
+    "deploy:video:preview": "yarn run deploy:video --environment preview",
+    "deploy:video:beta": "yarn run deploy:video --environment beta",
+    "deploy:video:stable": "yarn run deploy:video --production",
+    "cypress:open": "cypress open",
+    "cypress:e2e:audio": "cypress run --spec cypress/integration/audio-mixer.e2e.js",
+    "cypress:e2e:video": "cypress run --spec cypress/integration/video-composer.e2e.js",
+    "cypress:integration:audio": "cypress run --spec cypress/integration/audio-mixer.integration.js",
+    "cypress:integration:video": "cypress run --spec cypress/integration/video-composer.integration.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ricardotwilio/media-extensions-ci-playground.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/ricardotwilio/media-extensions-ci-playground/issues"
+  },
+  "homepage": "https://github.com/ricardotwilio/media-extensions-ci-playground#readme",
+  "private": true,
+  "workspaces": [
+    "audio-mixer",
+    "video-composer"
+  ],
+  "devDependencies": {
+    "cypress": "^8.3.1",
+    "dotenv": "^10.0.0",
+    "fs-extra": "^10.0.0",
+    "twilio": "^3.67.2",
+    "twilio-run": "^3.2.2"
+  },
+  "resolutions": {
+    "babel-loader": "8.1.0"
+  }
+}
