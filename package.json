@@ -27,7 +27,7 @@
     "cypress:open": "cypress open",
     "cypress:e2e:audio": "cypress run --spec cypress/integration/audio-mixer.e2e.js",
     "cypress:e2e:video": "cypress run --spec cypress/integration/video-composer.e2e.js",
-    "cypress:e2e:stable:video": "CYPRESS_MEDIA_EXTENSION=playground-video-composer-v1 cypress run --spec cypress/integration/stable/video-composer.e2e.js",
+    "cypress:e2e:video:stable": "CYPRESS_MEDIA_EXTENSION=playground-video-composer-v1 cypress run --spec cypress/integration/stable/video-composer.e2e.js",
     "cypress:integration:audio": "cypress run --spec cypress/integration/audio-mixer.integration.js",
     "cypress:integration:video": "cypress run --spec cypress/integration/video-composer.integration.js"
   },
