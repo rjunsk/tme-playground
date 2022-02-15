@@ -16,7 +16,7 @@
     "postbuild:audio": "node scripts/prepare-build.js audio-mixer/build",
     "postbuild:video": "node scripts/prepare-build.js video-composer/build",
     "deploy:audio": "twilio-run deploy --service-name playground-audio-mixer-v1 --override-existing-project --cwd audio-mixer --assets-folder build --no-functions --env ../.env",
-    "deploy:video": "twilio-run deploy --service-name playground-video-composer-v1 --override-existing-project --cwd video-composer --assets-folder build --no-functions --env ../.env",
+    "deploy:video": "twilio-run deploy --service-name playground-video-composer-v2 --override-existing-project --cwd video-composer --assets-folder build --no-functions --env ../.env",
     "deploy:video:temp": "yarn run deploy:video --environment temp",
     "deploy:audio:preview": "yarn run deploy:audio --environment preview",
     "deploy:audio:beta": "yarn run deploy:audio --environment beta",
@@ -27,7 +27,7 @@
     "cypress:open": "cypress open",
     "cypress:e2e:audio": "cypress run --spec cypress/integration/audio-mixer.e2e.js",
     "cypress:e2e:video": "cypress run --spec cypress/integration/video-composer.e2e.js",
-    "cypress:e2e:video:stable": "CYPRESS_MEDIA_EXTENSION=playground-video-composer-v1 cypress run --spec cypress/integration/stable/video-composer.e2e.js",
+    "cypress:e2e:video:stable": "cypress run --spec cypress/integration/stable/video-composer.e2e.js",
     "cypress:integration:audio": "cypress run --spec cypress/integration/audio-mixer.integration.js",
     "cypress:integration:video": "cypress run --spec cypress/integration/video-composer.integration.js"
   },

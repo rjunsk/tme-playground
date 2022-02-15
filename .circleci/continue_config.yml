@@ -23,10 +23,6 @@ parameters:
     description: Video Composer E2E Test Trigger
     type: boolean
     default: false
-  trigger-video-composer-v1-e2e-tests:
-    description: Audio Composer V1 E2E Test Trigger
-    type: boolean
-    default: false
 
 aliases:
   - &deploy-preview-filters
@@ -184,18 +180,9 @@ jobs:
           command: yarn build:audio
       - run:
           name: Run e2e tests
-          command: CYPRESS_MEDIA_EXTENSION=audio-mixer-v1 yarn run cypress:e2e:audio
+          command: yarn run cypress:e2e:audio
 
   e2e-test-video-composer:
-    docker:
-      - image: circleci/node:16-browsers
-    steps:
-      - shared-e2e-video-composer-setup
-      - run:
-          name: Run e2e tests
-          command: yarn run cypress:e2e:video:stable
-
-  e2e-test-video-composer-v1:
     docker:
       - image: circleci/node:16-browsers
     steps:
@@ -303,10 +290,6 @@ workflows:
     when: << pipeline.parameters.trigger-video-composer-e2e-tests >>
     jobs:
       - e2e-test-video-composer
-  video-composer-e2e-tests-v1:
-    when: << pipeline.parameters.trigger-video-composer-v1-e2e-tests >>
-    jobs:
-      - e2e-test-video-composer-v1
   test-video-composer:
     when: << pipeline.parameters.video-composer-updated >>
     jobs:
