@@ -100,7 +100,7 @@ jobs:
           name: Set Environment Variables for temporary deployment with test account
           command: |
             echo "Setting environment variables"
-            echo ACCOUNT_SID=$SECONDAR_ACCOUNT_SID >> .env
+            echo ACCOUNT_SID=$SECONDARY_ACCOUNT_SID >> .env
             echo AUTH_TOKEN=$SECONDARY_AUTH_TOKEN >> .env
       - run:
           name: Deploy video-composer to temporary url
