@@ -23,6 +23,10 @@ parameters:
     description: Video Composer E2E Test Trigger
     type: boolean
     default: false
+  trigger-video-composer-v1-e2e-tests:
+    description: Audio Composer V1 E2E Test Trigger
+    type: boolean
+    default: false
 
 aliases:
   - &deploy-preview-filters
@@ -49,6 +53,19 @@ aliases:
       ignore: /.*/
 
 commands:
+  shared-e2e-video-composer-setup:
+    steps:
+      - shared-setup
+      - run:
+          name: Run Tests
+          command: yarn test:video
+      - run:
+          name: Run Eslint
+          command: yarn lint:video
+      - run:
+          name: Build app and check types
+          command: yarn build:video
+
   shared-setup:
     steps:
       - add_ssh_keys:
@@ -173,16 +190,16 @@ jobs:
     docker:
       - image: circleci/node:16-browsers
     steps:
-      - shared-setup
+      - shared-e2e-audio-mixer-setup
       - run:
-          name: Run Tests
-          command: yarn test:video
-      - run:
-          name: Run Eslint
-          command: yarn lint:video
-      - run:
-          name: Build app and check types
-          command: yarn build:video
+          name: Run e2e tests
+          command: yarn run cypress:e2e:video:stable
+
+  e2e-test-video-composer-v1:
+    docker:
+      - image: circleci/node:16-browsers
+    steps:
+      - shared-e2e-video-composer-setup
       - run:
           name: Run e2e tests
           command: yarn run cypress:e2e:video:stable
@@ -286,6 +303,10 @@ workflows:
     when: << pipeline.parameters.trigger-video-composer-e2e-tests >>
     jobs:
       - e2e-test-video-composer
+  video-composer-e2e-tests-v1:
+    when: << pipeline.parameters.trigger-video-composer-v1-e2e-tests >>
+    jobs:
+      - e2e-test-video-composer-v1
   test-video-composer:
     when: << pipeline.parameters.video-composer-updated >>
     jobs:
