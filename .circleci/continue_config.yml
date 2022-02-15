@@ -190,7 +190,7 @@ jobs:
     docker:
       - image: circleci/node:16-browsers
     steps:
-      - shared-e2e-audio-mixer-setup
+      - shared-e2e-video-composer-setup
       - run:
           name: Run e2e tests
           command: yarn run cypress:e2e:video:stable
