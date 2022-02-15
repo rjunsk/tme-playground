@@ -96,6 +96,18 @@ jobs:
       - run:
           name: Run integration tests
           command: yarn cypress:integration:video
+      - run:
+          name: Set Environment Variables for temporary deployment with test account
+          command: |
+            echo "Setting environment variables"
+            echo ACCOUNT_SID=$SECONDAR_ACCOUNT_SID >> .env
+            echo AUTH_TOKEN=$SECONDARY_AUTH_TOKEN >> .env
+      - run:
+          name: Deploy video-composer to temporary url
+          command: yarn deploy:video:temp
+      - run:
+          name: Run e2e tests
+          command: yarn run cypress:e2e:video
       - store_artifacts:
           path: cypress/screenshots
       - store_artifacts:
@@ -173,7 +185,7 @@ jobs:
           command: yarn build:video
       - run:
           name: Run e2e tests
-          command: CYPRESS_MEDIA_EXTENSION=video-composer-v1 yarn run cypress:e2e:video
+          command: yarn run cypress:e2e:video:stable
 
   deploy-audio-mixer-preview:
     docker:
