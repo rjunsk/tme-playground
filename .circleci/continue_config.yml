@@ -25,7 +25,7 @@ parameters:
     default: false
 
 aliases:
-  - &deploy-preview-filters
+  - &deploy-test-filters
     branches:
       only:
         - main
@@ -34,7 +34,7 @@ aliases:
     tags:
       only:
         - /^audio-mixer-\d+\.\d+\.\d+-rc.\d+$/
-        - /^audio-mixer-\d+\.\d+\.\d+-preview\.\d+-rc.\d+$/
+        - /^audio-mixer-\d+\.\d+\.\d+-test\.\d+-rc.\d+$/
         - /^audio-mixer-\d+\.\d+\.\d+-beta\.\d+-rc.\d+$/
     branches:
       ignore: /.*/
@@ -43,7 +43,7 @@ aliases:
     tags:
       only:
         - /^video-composer-\d+\.\d+\.\d+-rc.\d+$/
-        - /^video-composer-\d+\.\d+\.\d+-preview\.\d+-rc.\d+$/
+        - /^video-composer-\d+\.\d+\.\d+-test\.\d+-rc.\d+$/
         - /^video-composer-\d+\.\d+\.\d+-beta\.\d+-rc.\d+$/
     branches:
       ignore: /.*/
@@ -126,7 +126,7 @@ jobs:
       - store_artifacts:
           path: cypress/videos
 
-  deploy-video-composer-preview:
+  deploy-video-composer-test:
     docker:
       - image: circleci/node:16-browsers
     steps:
@@ -141,8 +141,8 @@ jobs:
           name: Build
           command: yarn build:video
       - run:
-          name: Deploy Preview
-          command: yarn deploy:video:preview
+          name: Deploy Test
+          command: yarn deploy:video:test
 
   test-audio-mixer:
     docker:
@@ -191,7 +191,7 @@ jobs:
           name: Run e2e tests
           command: yarn run cypress:e2e:video:stable
 
-  deploy-audio-mixer-preview:
+  deploy-audio-mixer-test:
     docker:
       - image: circleci/node:16-browsers
     steps:
@@ -206,8 +206,8 @@ jobs:
           name: Build
           command: yarn build:audio
       - run:
-          name: Deploy Preview
-          command: yarn deploy:audio:preview
+          name: Deploy Test
+          command: yarn deploy:audio:test
 
   deploy-audio-mixer-beta:
     docker:
@@ -307,7 +307,7 @@ workflows:
               ignore:
                 - main
 
-  deploy-video-composer-preview:
+  deploy-video-composer-test:
     when:
       and:
         - << pipeline.parameters.video-composer-updated >>
@@ -315,13 +315,13 @@ workflows:
         - not: << pipeline.parameters.trigger-video-composer-e2e-tests >>
     jobs:
       - test-video-composer:
-          filters: *deploy-preview-filters
-      - deploy-video-composer-preview:
+          filters: *deploy-test-filters
+      - deploy-video-composer-test:
           requires:
             - test-video-composer
-          filters: *deploy-preview-filters
+          filters: *deploy-test-filters
 
-  deploy-audio-mixer-preview:
+  deploy-audio-mixer-test:
     when:
       and:
         - << pipeline.parameters.audio-mixer-updated >>
@@ -329,11 +329,11 @@ workflows:
         - not: << pipeline.parameters.trigger-video-composer-e2e-tests >>
     jobs:
       - test-audio-mixer:
-          filters: *deploy-preview-filters
-      - deploy-audio-mixer-preview:
+          filters: *deploy-test-filters
+      - deploy-audio-mixer-test:
           requires:
             - test-audio-mixer
-          filters: *deploy-preview-filters
+          filters: *deploy-test-filters
 
   deploy-audio-mixer-beta:
     jobs:
@@ -360,7 +360,7 @@ workflows:
             tags:
               only:
                 - /^audio-mixer-\d+\.\d+\.\d+$/
-                - /^audio-mixer-\d+\.\d+\.\d+-preview\.\d+$/
+                - /^audio-mixer-\d+\.\d+\.\d+-test\.\d+$/
                 - /^audio-mixer-\d+\.\d+\.\d+-beta\.\d+$/
             branches:
               ignore: /.*/
@@ -372,7 +372,7 @@ workflows:
             tags:
               only:
                 - /^video-composer-\d+\.\d+\.\d+$/
-                - /^video-composer-\d+\.\d+\.\d+-preview\.\d+$/
+                - /^video-composer-\d+\.\d+\.\d+-test\.\d+$/
                 - /^video-composer-\d+\.\d+\.\d+-beta\.\d+$/
             branches:
               ignore: /.*/
