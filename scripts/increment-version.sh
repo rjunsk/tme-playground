@@ -11,7 +11,7 @@ VERSION=$(node -pe "require('$EXTENSION/package.json').version")
 echo "`jq ".versionRc=1" $EXTENSION/package.json`" > $EXTENSION/package.json
 
 # Increment the prerelease version or patch
-if [[ "$VERSION" == *"preview"* ]] || [[ "$VERSION" == *"beta"* ]]; then
+if [[ "$VERSION" == *"test"* ]] || [[ "$VERSION" == *"beta"* ]]; then
   npm version --workspace $EXTENSION prerelease
 else
   npm version --workspace $EXTENSION patch 
