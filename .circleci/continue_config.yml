@@ -66,7 +66,7 @@ commands:
     steps:
       - add_ssh_keys:
           fingerprints:
-            - "1b:1a:08:f6:d1:c8:17:1e:ad:ff:e7:8f:e3:4f:d8:7a"
+            - "92:dd:cb:71:16:45:15:aa:db:9e:ce:0f:98:df:e5:69"
       - checkout
       - run:
           name: Set Environment Variables
