@@ -1,7 +1,7 @@
 {
   "name": "video-composer",
   "version": "2.0.4",
-  "versionRc": 2,
+  "versionRc": 3,
   "private": true,
   "homepage": ".",
   "devDependencies": {
