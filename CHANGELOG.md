@@ -1,3 +1,12 @@
+## [2.2.2](https://github.com/ricardotwilio/media-extensions-ci-playground/compare/v1.0.2...v2.2.2) (2022-05-12)
+
+
+### Bug Fixes
+
+* **audio-mixer:** test - 3 ([#9](https://github.com/ricardotwilio/media-extensions-ci-playground/issues/9)) ([44f23e6](https://github.com/ricardotwilio/media-extensions-ci-playground/commit/44f23e6ff6524f183e1800ead6fd67342c778069))
+
+
+
 ## [1.0.2](https://github.com/ricardotwilio/media-extensions-ci-playground/compare/v1.0.1...v1.0.2) (2022-05-12)
 
 
