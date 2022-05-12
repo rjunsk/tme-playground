@@ -11,14 +11,14 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - name: conventional Changelog Action Audio Mixer
+      - name: conventional Changelog Action audio-mixer
         id: changelog
         uses: TriPSs/conventional-changelog-action@v3.7.1
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
-          version-file: './package.json,./package-lock.json'
+          version-file: './audio-mixer/package.json'
 
-      - name: create release
+      - name: create release audio-mixer
         uses: actions/create-release@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
